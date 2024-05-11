@@ -51,7 +51,7 @@ def get_images(ws, prompt):
             continue  # preview as binary data
 
     history = get_history(prompt_id)[prompt_id]
-    print(history)
+    # print(history)
     for o in history["outputs"]:
         for node_id in history["outputs"]:
             node_output = history["outputs"][node_id]
@@ -71,7 +71,7 @@ def get_images(ws, prompt):
                 output_images[node_id] = videos_output
 
     print("image acquisition completed")
-    print(output_images)
+    # print(output_images)
     return output_images
 
 # parsing workflow and obtaining images
@@ -106,16 +106,18 @@ def generate_clip(prompt, seed, workflowfile, idx):
             # use formatted timestamps in file names
             save_path = "{}/{}_{}_{}".format(WORKING_DIR, idx, seed, timestamp)
 
-            print("save_path: "+save_path)
             with Image.open(BytesIO(image_data)) as img:
                 if img.is_animated:
                     if NEED_GIF:
-                        u_gif.save_gif(img, save_path + ".gif")
+                        save_path = save_path + ".gif"
+                        u_gif.save_gif(img, save_path)
                     else:
-                        with open(save_path + ".webp", "wb") as binary_file:
+                        save_path = save_path + ".webp"
+                        with open(save_path, "wb") as binary_file:
                             binary_file.write(image_data)
                 else:
-                    img.convert('RGBA').save(save_path + ".png", 'PNG')
+                    save_path = save_path + ".png"
+                    img.convert('RGBA').save(save_path, 'PNG')
 
             print("{} DONE!!!".format(save_path))
 
@@ -136,11 +138,10 @@ def call_api(prompts):
             continue
         prompt = prompts[i]
         seed = u_random.generate_random_number(15)
-        print(i, " - processing: ", prompt, " - random seed: ", seed)
+        print("\n", i, " - processing: ", prompt, " - random seed: ", seed)
         generate_clip(prompt, seed, workflowfile, idx)
         idx += 1
         u_file.save(str(idx), cache_file_idx)
-        break
     
     # execution completed reset
     u_file.save(str(0), cache_file_idx)
@@ -151,10 +152,10 @@ def call_api(prompts):
 if __name__ == "__main__":
     
     # is it continuously generated in a loop
-    NEED_LOOP = False
+    NEED_LOOP = True
     
     # is output dynamic images in gif format. the default is webp format
-    NEED_GIF = False
+    NEED_GIF = True
     
     # save directory for output images
     WORKING_DIR = ".cache/output"
